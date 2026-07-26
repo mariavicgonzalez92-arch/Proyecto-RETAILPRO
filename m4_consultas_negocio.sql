@@ -4,6 +4,7 @@
 -- Archivo: m4_consultas_negocio.sql
 -- Base de Datos: Ventas_Tech_DB
 -- Tabla: ventas (id_cliente, id_producto, cantidad, precio_unitario, fecha_venta)
+-- Motor: SQL Server (T-SQL)
 -- ══════════════════════════════════════════════════════════════════════════
 
 
@@ -13,12 +14,12 @@
 -- ──────────────────────────────────────────────────────────────────────────
 
 SELECT 
-    EXTRACT(MONTH FROM fecha_venta) AS mes,
+    MONTH(fecha_venta) AS mes,
     SUM(cantidad * precio_unitario) AS total_facturado,
     COUNT(*) AS cantidad_pedidos,
     AVG(cantidad * precio_unitario) AS ticket_promedio
 FROM ventas
-GROUP BY EXTRACT(MONTH FROM fecha_venta)
+GROUP BY MONTH(fecha_venta)
 ORDER BY mes;
 
 
@@ -27,14 +28,13 @@ ORDER BY mes;
 -- Objetivo: Top 5 de id_producto por total facturado, mostrando unidades vendidas.
 -- ──────────────────────────────────────────────────────────────────────────
 
-SELECT 
+SELECT TOP 5
     id_producto,
     SUM(cantidad) AS unidades_vendidas,
     SUM(cantidad * precio_unitario) AS total_generado
 FROM ventas
 GROUP BY id_producto
-ORDER BY total_generado DESC
-LIMIT 5;
+ORDER BY total_generado DESC;
 
 
 -- ──────────────────────────────────────────────────────────────────────────
@@ -59,10 +59,10 @@ ORDER BY total_gastado DESC;
 
 WITH facturacion_mensual AS (
     SELECT 
-        EXTRACT(MONTH FROM fecha_venta) AS mes,
+        MONTH(fecha_venta) AS mes,
         SUM(cantidad * precio_unitario) AS total_mes
     FROM ventas
-    GROUP BY EXTRACT(MONTH FROM fecha_venta)
+    GROUP BY MONTH(fecha_venta)
 ),
 promedio_general AS (
     SELECT AVG(total_mes) AS promedio_mensual
@@ -86,7 +86,7 @@ ORDER BY f.mes;
 /*
 HALLAZGOS CONCRETOS DE LA EXPLORACIÓN DE DATOS:
 
-1. Concentración de ventas en Producto Top (id_producto): El producto con mayor facturación concentra una porción significativa de los ingresos totales de la tienda, consolidándose como el principal motor del catálogo actual.
-2. Comportamiento de Clientes Recurrentes: Existe un segmento clave de clientes que han realizado múltiples compras, registrando un gasto acumulado sustancialmente superior a la media de la cartera.
-3. Estacionalidad Mensual de Ingresos: Se observa una clara variación estacional en la facturación mensual, identificando meses clave que se posicionan por encima del promedio general impulsados por mayor volumen de pedidos y un ticket promedio más alto.
+1. Concentración de ventas en Producto Top: El producto con mayor facturación concentra una porción significativa del volumen total de ingresos, consolidándose como el principal motor de ventas del catálogo.
+2. Comportamiento de Clientes Recurrentes: Existe un segmento clave de clientes con más de un pedido que registran un gasto acumulado sustancialmente superior a la media, representando la mayor oportunidad de fidelización.
+3. Estacionalidad Mensual de Ingresos: Al comparar la facturación mensual contra el promedio general, se identifican meses pico con alto volumen de pedidos y ticket promedio elevado que impulsan el resultado general.
 */
